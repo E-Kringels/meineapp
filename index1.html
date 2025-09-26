@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>eli.app</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
+                  url('blitz.jpg') center/cover no-repeat;
+      color: #fff;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+    }
+
+    h1 { text-align: center; font-size: 1.4em; margin-bottom: 10px; }
+
+    .dashboard { text-align: center; margin-bottom: 10px; }
+    .card { display: inline-block; margin: 5px; padding: 5px 10px; border-radius: 8px; background: rgba(255,255,255,0.8); color: #000; font-size: 0.9em; }
+    
+    .progress-container { width: 90%; margin: 8px auto; background: #ddd; border-radius: 6px; overflow: hidden; height: 14px; }
+    .progress-bar { height: 100%; background: #4caf50; width: 0%; transition: width 0.3s; }
+
+    .tabs { display: flex; justify-content: center; margin: 8px 0; }
+    .tab { flex: 1; padding: 6px; text-align: center; font-size: 0.85em; cursor: pointer; border-radius: 6px; background: #ccc; margin: 0 2px; }
+    .tab.active { background: #4caf50; color: white; }
+    .content { display: none; }
+    .content.active { display: block; }
+
+    .eigenschaft { display: flex; align-items: center; margin: 6px 0; }
+    .eigenschaft button {
+      flex: 1;
+      padding: 8px;
+      font-size: 0.9em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #f9f9f9;
+      transition: background-color 0.2s;
+    }
+    .eigenschaft button.aktiv { background-color: #4caf50; color: white; }
+    .punkte { margin-left: 8px; font-size: 0.85em; }
+
+    #resetBtn { display: block; margin: 10px auto; padding: 8px 16px; font-size: 0.9em; }
+
+    #calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-top: 10px; font-size: 0.65em; }
+    .day { padding: 4px; text-align: center; border-radius: 4px; background: #eee; color: #000; }
+    .day.success { background: #4caf50; color: white; }
+    .day.fail { background: #f44336; color: white; }
+
+    .dark { background: #222; color: #ddd; }
+    .dark .card { background: #333; color: #fff; }
+    .dark .tab { background: #555; }
+    .dark .tab.active { background: #2196f3; }
+    .mood { text-align:center; margin:10px 0; }
+    .mood button { margin: 3px; padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; cursor: pointer; }
+    .mood button.active { background:#2196f3; color:white; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Es sind nicht unsere Fähigkeiten, <br> 
+        die zeigen, wer wir sind, <br>
+        sondern unsere Entscheidungen.</h1> <br>
+
+    <div class="dashboard">
+      <div class="card" id="tag">Tag: 0</div>
+      <div class="card" id="ziel">Ziel: ❌</div>
+      <div class="card" id="streak">Streak: 0</div>
+      <div class="card" id="gesamt">Gesamt: 0</div>
+      <div class="card" id="level">Lvl: 1 ⭐</div>
+    </div>
+
+    <div class="progress-container"><div class="progress-bar" id="progress"></div></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('meditation')">🧘🙏</div>
+      <div class="tab" onclick="switchTab('lernen')">📚💻</div>
+      <div class="tab" onclick="switchTab('sport')">💪🚣</div>
+    </div>
+
+    <div id="meditation" class="content active">
+      <div class="eigenschaft"><button onclick="toggle(this,1)">Meditation früh</button><span class="punkte">0</span></div>
+      <div class="eigenschaft"><button onclick="toggle(this,1)">Meditation spät</button><span class="punkte">0</span></div>
+      <div class="eigenschaft"><button onclick="toggle(this,1)">Beten früh</button><span class="punkte">0</span></div>
+      <div class="eigenschaft"><button onclick="toggle(this,1)">Beten spät</button><span class="punkte">0</span></div>
+    </div>
+
+    <div id="lernen" class="content">
+      <div class="eigenschaft"><button onclick="toggle(this,2)">Lernen</button><span class="punkte">0</span></div>
+      <div class="eigenschaft"><button onclick="toggle(this,1)">Prog</button><span class="punkte">0</span></div>
+    </div>
+
+    <div id="sport" class="content">
+      <div class="eigenschaft"><button onclick="toggle(this,2)">Langes rudern</button><span class="punkte">0</span></div>
+      <div class="eigenschaft"><button onclick="toggle(this,1)">Kurzes rudern</button><span class="punkte">0</span></div>
+      <div class="eigenschaft"><button onclick="toggle(this,1)">Bauch</button><span class="punkte">0</span></div>
+      <div class="eigenschaft"><button onclick="toggle(this,1)">Auf/ab dehnen</button><span class="punkte">0</span></div>
+    </div>
+
+    <div class="mood">
+      <p>Wie geht's dir heute?</p>
+      <button onclick="setMood(this,'😞')">Schlecht</button>
+      <button onclick="setMood(this,'😐')">Okay</button>
+      <button onclick="setMood(this,'😊')">Gut</button>
+      <button onclick="setMood(this,'🤩')">Sehr gut</button>
+    </div>
+
+    <button id="resetBtn" onclick="resetTag()">Tages-Reset</button>
+    <button onclick="toggleDarkMode()">🌙/☀️</button>
+
+    <h2 style="text-align:center; font-size:1em; margin-top:10px;">Kalender</h2>
+    <div id="calendar"></div>
+  </div>
+
+  <script>
+    const TAGESZIEL = 5;
+    let tagesPunkte = 0;
+    let gesamtPunkte = +localStorage.getItem("gesamt") || 0;
+    let streak = +localStorage.getItem("streak") || 0;
+    let letzterTag = localStorage.getItem("letzterTag") || "";
+    let level = +localStorage.getItem("level") || 1;
+    let kalender = localStorage.getItem("kalender") ? JSON.parse(localStorage.getItem("kalender")) : {};
+    let moodToday = "";
+
+    function updateDashboard() {
+      document.getElementById("tag").innerText = "Tag: " + tagesPunkte;
+      document.getElementById("gesamt").innerText = "Gesamt: " + gesamtPunkte;
+      document.getElementById("streak").innerText = "Streak: " + streak;
+      document.getElementById("level").innerText = "Lvl: " + level + " " + levelSymbol(level);
+      let ziel = document.getElementById("ziel");
+      if (tagesPunkte >= TAGESZIEL) { ziel.innerText = "Ziel ✅"; }
+      else { ziel.innerText = "Ziel ❌"; }
+      document.getElementById("progress").style.width = Math.min((tagesPunkte/TAGESZIEL)*100,100) + "%";
+    }
+
+    function levelSymbol(lvl) {
+      if (lvl < 5) return "⭐";
+      if (lvl < 10) return "🏅";
+      return "🏆";
+    }
+
+    function toggle(button, wert) {
+      let punkteSpan = button.nextElementSibling;
+      if (!button.classList.contains("aktiv")) {
+        button.classList.add("aktiv");
+        punkteSpan.textContent = wert;
+        tagesPunkte += wert;
+        gesamtPunkte += wert;
+      } else {
+        button.classList.remove("aktiv");
+        punkteSpan.textContent = "0";
+        tagesPunkte -= wert;
+        gesamtPunkte -= wert;
+      }
+      localStorage.setItem("gesamt", gesamtPunkte);
+      updateDashboard();
+      checkLevelUp();
+    }
+
+    function setMood(button, emoji) {
+      document.querySelectorAll(".mood button").forEach(b=>b.classList.remove("active"));
+      button.classList.add("active");
+      moodToday = emoji;
+    }
+
+    function checkLevelUp() {
+      let nextLevel = Math.floor(gesamtPunkte/50)+1;
+      if (nextLevel > level) {
+        level = nextLevel;
+        localStorage.setItem("level", level);
+        alert("🎉 Level Up! Jetzt Level " + level + " " + levelSymbol(level));
+      }
+    }
+
+    function resetTag() {
+      let heute = new Date().toLocaleDateString("de-DE");
+      if (tagesPunkte >= TAGESZIEL) { streak++; kalender[heute] = {status:"success", mood:moodToday}; }
+      else { streak = 0; kalender[heute] = {status:"fail", mood:moodToday}; }
+      localStorage.setItem("streak", streak);
+      localStorage.setItem("kalender", JSON.stringify(kalender));
+      tagesPunkte = 0;
+      letzterTag = heute;
+      localStorage.setItem("letzterTag", letzterTag);
+      document.querySelectorAll(".eigenschaft button").forEach(btn=>{ btn.classList.remove("aktiv"); btn.nextElementSibling.textContent="0"; });
+      document.querySelectorAll(".mood button").forEach(b=>b.classList.remove("active"));
+      moodToday = "";
+      updateDashboard(); zeichneKalender();
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+      document.querySelectorAll(".content").forEach(c=>c.classList.remove("active"));
+      document.querySelector(`.tab[onclick*='${tab}']`).classList.add("active");
+      document.getElementById(tab).classList.add("active");
+    }
+
+    function zeichneKalender() {
+      const calDiv = document.getElementById("calendar"); calDiv.innerHTML="";
+      for (let tag in kalender) {
+        let d = document.createElement("div"); 
+        d.className="day "+kalender[tag].status; 
+        d.innerText=tag+"\n"+(kalender[tag].mood||"");
+        calDiv.appendChild(d);
+      }
+    }
+
+    function toggleDarkMode() { document.body.classList.toggle("dark"); }
+
+    // automatischer Tagesreset
+    let heute = new Date().toLocaleDateString("de-DE");
+    if (letzterTag !== heute) { resetTag(); }
+
+    updateDashboard(); zeichneKalender();
+  </script>
+</body>
+</html>
